@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🎮GameVerse</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  body{
+    margin:0;font-family:Segoe UI,sans-serif;
+    background:radial-gradient(circle at top,#0f172a,#000);
+    color:#fff;height:100vh;display:flex;align-items:center;justify-content:center
+  }
+  .hub{width:min(90vw,1100px);text-align:center}
+  button{
+    padding:10px 18px;margin:8px;border-radius:10px;border:none;
+    cursor:pointer;font-weight:bold;
+    background:linear-gradient(135deg,#4fc3f7,#a855f7)
+  }
+  .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-top:30px}
+  .game{
+    flex:1;min-width:200px;max-width:240px;height:120px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;border-radius:16px;
+    background:linear-gradient(135deg,#1e293b,#020617);
+    box-shadow:0 10px 25px rgba(0,0,0,.4);
+    transition:.2s
+  }
+  .game:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(168,85,247,.5)}
+  .mafia{
+    margin:0 auto 30px;width:320px;height:160px;
+    border:2px solid gold;box-shadow:0 0 25px rgba(255,215,0,.6)
+  }
+</style>
+</head>
+<body>
+
+<div class="hub">
+  <h1>🎮 AI Game Hub</h1>
+  <p><button onclick="logout()">Logout</button></p>
+
+  <div class="game mafia" onclick="go('mafia.html')">🕵️‍♂️ MAFIA (AI Moderator)</div>
+
+  <div class="row">
+    <div class="game" onclick="go('rps.html')">🤖 Rock Paper Scissors</div>
+    <div class="game" onclick="go('ttt.html')">❌⭕ Tic Tac Toe</div>
+    <div class="game" onclick="go('snakes.html')">🐍 Snakes & Ladders</div>
+    <div class="game" onclick="go('chess.html')">♟️ Chess</div>
+  </div>
+</div>
+
+<script>
+function go(page){
+  window.location.href = page;
+}
+function logout(){
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

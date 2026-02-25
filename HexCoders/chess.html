@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Mini Chess vs AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<style>
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: radial-gradient(circle at top, #0f172a, #000);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+
+  .wrap {
+    background: rgba(255,255,255,0.05);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 0 30px rgba(79,195,247,0.4);
+    text-align: center;
+  }
+
+  h1 {
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #22d3ee, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(8, 60px);
+    grid-template-rows: repeat(8, 60px);
+    gap: 2px;
+    margin: 20px auto;
+    perspective: 800px;
+  }
+
+  .cell {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 8px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .cell.white { background: #e5e7eb; color: #111; }
+  .cell.black { background: #334155; }
+
+  .cell:hover {
+    transform: translateZ(10px) scale(1.05);
+    box-shadow: 0 0 10px rgba(79,195,247,0.6);
+  }
+
+  .selected {
+    outline: 3px solid #22d3ee;
+  }
+
+  .info {
+    margin-top: 10px;
+    min-height: 24px;
+  }
+
+  button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    background: linear-gradient(135deg, #4fc3f7, #a855f7);
+    color: #000;
+    box-shadow: 0 0 15px rgba(79,195,247,0.6);
+    transition: 0.2s;
+  }
+
+  button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(168,85,247,1);
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>♟️ Chess vs AI</h1>
+  <p>You are White. Click a piece, then a square.</p>
+
+  <div id="board" class="board"></div>
+
+  <div class="info" id="info">Your move.</div>
+
+  <button onclick="goBack()">⬅ Back to Game Hub</button>
+</div>
+
+<script>
+  // ===== SIMPLE CHESS ENGINE (BASIC) =====
+
+  const boardEl = document.getElementById("board");
+  const infoEl = document.getElementById("info");
+
+  // Unicode pieces
+  const PIECES = {
+    "r": "♜", "n": "♞", "b": "♝", "q": "♛", "k": "♚", "p": "♟",
+    "R": "♖", "N": "♘", "B": "♗", "Q": "♕", "K": "♔", "P": "♙"
+  };
+
+  // Board representation (8x8)
+  // Uppercase = White, Lowercase = Black
+  let board = [
+    ["r","n","b","q","k","b","n","r"],
+    ["p","p","p","p","p","p","p","p"],
+    ["","","","","","","",""],
+    ["","","","","","","",""],
+    ["","","","","","","",""],
+    ["","","","","","","",""],
+    ["P","P","P","P","P","P","P","P"],
+    ["R","N","B","Q","K","B","N","R"]
+  ];
+
+  let selected = null; // {r, c}
+  let turn = "white"; // "white" or "black"
+
+  function render() {
+    boardEl.innerHTML = "";
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const cell = document.createElement("div");
+        const isWhite = (r + c) % 2 === 0;
+        cell.className = "cell " + (isWhite ? "white" : "black");
+
+        const piece = board[r][c];
+        if (piece) cell.textContent = PIECES[piece];
+
+        if (selected && selected.r === r && selected.c === c) {
+          cell.classList.add("selected");
+        }
+
+        cell.onclick = () => onCellClick(r, c);
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+
+  function isWhitePiece(p) {
+    return p && p === p.toUpperCase();
+  }
+
+  function isBlackPiece(p) {
+    return p && p === p.toLowerCase();
+  }
+
+  function onCellClick(r, c) {
+    if (turn !== "white") return; // wait for AI
+
+    const piece = board[r][c];
+
+    if (!selected) {
+      // Select a white piece
+      if (piece && isWhitePiece(piece)) {
+        selected = { r, c };
+        render();
+      }
+    } else {
+      // Try move
+      const from = selected;
+      const to = { r, c };
+      if (tryMove(from, to, "white")) {
+        selected = null;
+        render();
+        infoEl.textContent = "AI is thinking...";
+        setTimeout(aiMove, 500);
+      } else {
+        // Invalid move or reselect
+        if (piece && isWhitePiece(piece)) {
+          selected = { r, c };
+        } else {
+          selected = null;
+        }
+        render();
+      }
+    }
+  }
+
+  function tryMove(from, to, side) {
+    const piece = board[from.r][from.c];
+    if (!piece) return false;
+
+    // Basic side check
+    if (side === "white" && !isWhitePiece(piece)) return false;
+    if (side === "black" && !isBlackPiece(piece)) return false;
+
+    // Destination piece
+    const target = board[to.r][to.c];
+    if (target) {
+      if (side === "white" && isWhitePiece(target)) return false;
+      if (side === "black" && isBlackPiece(target)) return false;
+    }
+
+    // Very simplified move rules (not full chess, but playable):
+    const dr = to.r - from.r;
+    const dc = to.c - from.c;
+    const absR = Math.abs(dr);
+    const absC = Math.abs(dc);
+    const p = piece.toLowerCase();
+
+    // Pawn
+    if (p === "p") {
+      const dir = isWhitePiece(piece) ? -1 : 1;
+      // Move forward
+      if (dc === 0 && !target && dr === dir) {
+        doMove(from, to);
+        return true;
+      }
+      // Capture
+      if (absC === 1 && dr === dir && target) {
+        doMove(from, to);
+        return true;
+      }
+      return false;
+    }
+
+    // Rook
+    if (p === "r") {
+      if (dr === 0 || dc === 0) {
+        if (clearPath(from, to)) {
+          doMove(from, to);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Bishop
+    if (p === "b") {
+      if (absR === absC) {
+        if (clearPath(from, to)) {
+          doMove(from, to);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Queen
+    if (p === "q") {
+      if (dr === 0 || dc === 0 || absR === absC) {
+        if (clearPath(from, to)) {
+          doMove(from, to);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Knight
+    if (p === "n") {
+      if ((absR === 2 && absC === 1) || (absR === 1 && absC === 2)) {
+        doMove(from, to);
+        return true;
+      }
+      return false;
+    }
+
+    // King
+    if (p === "k") {
+      if (absR <= 1 && absC <= 1) {
+        doMove(from, to);
+        return true;
+      }
+      return false;
+    }
+
+    return false;
+  }
+
+  function clearPath(from, to) {
+    const dr = Math.sign(to.r - from.r);
+    const dc = Math.sign(to.c - from.c);
+    let r = from.r + dr;
+    let c = from.c + dc;
+    while (r !== to.r || c !== to.c) {
+      if (board[r][c] !== "") return false;
+      r += dr;
+      c += dc;
+    }
+    return true;
+  }
+
+  function doMove(from, to) {
+    board[to.r][to.c] = board[from.r][from.c];
+    board[from.r][from.c] = "";
+    turn = (turn === "white") ? "black" : "white";
+  }
+
+  // ===== AI: Random Legal Move for Black =====
+  function aiMove() {
+    if (turn !== "black") return;
+
+    const moves = [];
+
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const p = board[r][c];
+        if (p && isBlackPiece(p)) {
+          for (let r2 = 0; r2 < 8; r2++) {
+            for (let c2 = 0; c2 < 8; c2++) {
+              // Try move on a copy
+              const snapshot = JSON.parse(JSON.stringify(board));
+              const from = { r, c };
+              const to = { r: r2, c: c2 };
+              if (tryMoveSim(snapshot, from, to)) {
+                moves.push({ from, to });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (moves.length === 0) {
+      infoEl.textContent = "Game over!";
+      return;
+    }
+
+    const move = moves[Math.floor(Math.random() * moves.length)];
+    doMove(move.from, move.to);
+    render();
+    turn = "white";
+    infoEl.textContent = "Your move.";
+  }
+
+  function tryMoveSim(b, from, to) {
+    const piece = b[from.r][from.c];
+    if (!piece || !isBlackPiece(piece)) return false;
+    const target = b[to.r][to.c];
+    if (target && isBlackPiece(target)) return false;
+
+    const dr = to.r - from.r;
+    const dc = to.c - from.c;
+    const absR = Math.abs(dr);
+    const absC = Math.abs(dc);
+    const p = piece.toLowerCase();
+
+    // Pawn
+    if (p === "p") {
+      const dir = 1;
+      if (dc === 0 && !target && dr === dir) return true;
+      if (absC === 1 && dr === dir && target) return true;
+      return false;
+    }
+
+    // Rook
+    if (p === "r") {
+      if (dr === 0 || dc === 0) return pathClearSim(b, from, to);
+      return false;
+    }
+
+    // Bishop
+    if (p === "b") {
+      if (absR === absC) return pathClearSim(b, from, to);
+      return false;
+    }
+
+    // Queen
+    if (p === "q") {
+      if (dr === 0 || dc === 0 || absR === absC) return pathClearSim(b, from, to);
+      return false;
+    }
+
+    // Knight
+    if (p === "n") {
+      return (absR === 2 && absC === 1) || (absR === 1 && absC === 2);
+    }
+
+    // King
+    if (p === "k") {
+      return absR <= 1 && absC <= 1;
+    }
+
+    return false;
+  }
+
+  function pathClearSim(b, from, to) {
+    const dr = Math.sign(to.r - from.r);
+    const dc = Math.sign(to.c - from.c);
+    let r = from.r + dr;
+    let c = from.c + dc;
+    while (r !== to.r || c !== to.c) {
+      if (b[r][c] !== "") return false;
+      r += dr;
+      c += dc;
+    }
+    return true;
+  }
+
+  function goBack() {
+    // If using as a separate page, go back to hub:
+    window.location.href = "index12.html"; // change if your hub file name is different
+  }
+
+  render();
+</script>
+
+</body>
+</html>

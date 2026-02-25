@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAFIA — The Night Calls</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #D4AF37;
+    --gold-light: #F5E27A;
+    --gold-dark: #8B7320;
+    --black: #080808;
+    --deep: #0D0D0D;
+    --surface: #111111;
+    --text: #E8D5A3;
+    --blood: #8B0000;
+    --day-bg: #F5EFE0;
+    --day-text: #2C1810;
+    --day-accent: #8B6914;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Crimson Text', serif;
+    background: var(--black);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== STARS BACKGROUND ===== */
+  .stars-bg {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at 20% 50%, #1a1a2e 0%, #080808 60%);
+  }
+  .stars-bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 5%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 25%, rgba(255,255,255,0.9) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 20%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 40%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 55%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 45%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 70%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 80%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 75%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 90%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 95%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(2px 2px at 55% 35%, rgba(212,175,55,0.6) 0%, transparent 100%),
+      radial-gradient(2px 2px at 75% 60%, rgba(212,175,55,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 85%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 95% 50%, rgba(255,255,255,0.3) 0%, transparent 100%);
+    animation: twinkle 4s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle {
+    0% { opacity: 0.7; }
+    100% { opacity: 1; }
+  }
+
+  /* ===== PAGES ===== */
+  .page {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .page.active { display: flex; }
+
+  /* ===== GOLD DIVIDER ===== */
+  .divider {
+    width: 200px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 20px auto;
+  }
+
+  /* ===== PAGE 1: SETUP ===== */
+  #page-setup {
+    text-align: center;
+  }
+  .main-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 40px rgba(212,175,55,0.4), 0 0 80px rgba(212,175,55,0.2);
+    letter-spacing: 0.1em;
+    animation: titleGlow 3s ease-in-out infinite alternate;
+  }
+  @keyframes titleGlow {
+    from { text-shadow: 0 0 30px rgba(212,175,55,0.3); }
+    to { text-shadow: 0 0 60px rgba(212,175,55,0.7), 0 0 100px rgba(212,175,55,0.3); }
+  }
+  .subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    letter-spacing: 0.4em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    margin-top: 10px;
+  }
+  .setup-card {
+    background: linear-gradient(135deg, rgba(17,17,17,0.95), rgba(25,20,5,0.95));
+    border: 1px solid var(--gold-dark);
+    border-radius: 4px;
+    padding: 50px 60px;
+    margin-top: 50px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 0 60px rgba(212,175,55,0.1), inset 0 0 40px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  .setup-card::before, .setup-card::after {
+    content: '✦';
+    position: absolute;
+    color: var(--gold);
+    font-size: 1.2rem;
+  }
+  .setup-card::before { top: 12px; left: 16px; }
+  .setup-card::after { bottom: 12px; right: 16px; }
+
+  .card-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    margin-bottom: 30px;
+  }
+  .player-counter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    margin: 30px 0;
+  }
+  .counter-btn {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    border: 1px solid var(--gold-dark);
+    background: transparent;
+    color: var(--gold);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Cinzel', serif;
+  }
+  .counter-btn:hover {
+    background: var(--gold);
+    color: var(--black);
+    box-shadow: 0 0 20px rgba(212,175,55,0.4);
+  }
+  .counter-num {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 4rem;
+    color: var(--gold);
+    min-width: 80px;
+    text-align: center;
+    text-shadow: 0 0 20px rgba(212,175,55,0.5);
+  }
+  .player-names {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px 0 30px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .player-names::-webkit-scrollbar { width: 3px; }
+  .player-names::-webkit-scrollbar-track { background: transparent; }
+  .player-names::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 2px; }
+
+  .name-input {
+    background: rgba(212,175,55,0.05);
+    border: 1px solid rgba(212,175,55,0.2);
+    border-radius: 2px;
+    padding: 10px 16px;
+    color: var(--text);
+    font-family: 'Crimson Text', serif;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+    width: 100%;
+  }
+  .name-input:focus { border-color: var(--gold); }
+  .name-input::placeholder { color: rgba(232,213,163,0.3); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold), var(--gold-dark));
+    color: var(--black);
+    border: none;
+    padding: 16px 50px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 20px rgba(212,175,55,0.2);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 4px 40px rgba(212,175,55,0.5);
+    transform: translateY(-1px);
+  }
+  .rule-note {
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: rgba(232,213,163,0.4);
+    font-style: italic;
+  }
+
+  /* ===== PAGE 2: NIGHT SCENE ===== */
+  #page-night {
+    background: radial-gradient(ellipse at center top, #1a0a00 0%, #080808 70%);
+  }
+  .night-overlay {
+    position: fixed; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(139,64,0,0.15) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .table-scene {
+    position: relative;
+    width: min(700px, 95vw);
+  }
+  .scene-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .scene-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    color: var(--gold);
+    letter-spacing: 0.1em;
+  }
+  .phase-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.5em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  /* Round table */
+  .round-table-wrap {
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .round-table {
+    position: absolute; inset: 0;
+  }
+  .table-surface {
+    position: absolute;
+    top: 15%; left: 15%; right: 15%; bottom: 15%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 40% 35%, #2a1a00, #0d0800);
+    border: 3px solid var(--gold-dark);
+    box-shadow:
+      0 0 60px rgba(212,175,55,0.15),
+      inset 0 0 80px rgba(0,0,0,0.8),
+      0 0 120px rgba(0,0,0,0.9);
+  }
+  .table-surface::after {
+    content: '⚜';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3rem;
+    color: rgba(212,175,55,0.15);
+  }
+  .candle {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -60%);
+    text-align: center;
+    z-index: 2;
+  }
+  .candle-flame {
+    font-size: 1.8rem;
+    animation: flicker 1.5s ease-in-out infinite alternate;
+    display: block;
+  }
+  @keyframes flicker {
+    0% { transform: scaleY(1) scaleX(1); opacity: 0.9; }
+    25% { transform: scaleY(1.1) scaleX(0.9); opacity: 1; }
+    50% { transform: scaleY(0.95) scaleX(1.05); opacity: 0.85; }
+    75% { transform: scaleY(1.05) scaleX(0.95); opacity: 1; }
+    100% { transform: scaleY(0.9) scaleX(1.1); opacity: 0.9; }
+  }
+
+  /* Player seats around table */
+  .seat {
+    position: absolute;
+    width: 70px;
+    text-align: center;
+    transform: translate(-50%, -50%);
+    cursor: default;
+    transition: all 0.3s;
+  }
+  .seat-avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+    border: 2px solid var(--gold-dark);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    margin: 0 auto 4px;
+    position: relative;
+    box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    transition: all 0.3s;
+  }
+  .seat.eliminated .seat-avatar {
+    background: rgba(139,0,0,0.3);
+    border-color: var(--blood);
+    filter: grayscale(0.7);
+  }
+  .seat.eliminated .seat-avatar::after {
+    content: '✝';
+    position: absolute;
+    color: var(--blood);
+    font-size: 1rem;
+    bottom: -2px; right: -2px;
+  }
+  .seat-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70px;
+  }
+  .seat.eliminated .seat-name { color: rgba(232,213,163,0.3); text-decoration: line-through; }
+  .seat.mafia-target .seat-avatar {
+    border-color: var(--blood);
+    box-shadow: 0 0 20px rgba(139,0,0,0.6);
+    animation: targetPulse 1s ease-in-out infinite alternate;
+  }
+  @keyframes targetPulse {
+    from { box-shadow: 0 0 10px rgba(139,0,0,0.4); }
+    to { box-shadow: 0 0 30px rgba(139,0,0,0.9); }
+  }
+
+  /* AI Moderator */
+  .ai-mod {
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 5;
+  }
+  .ai-avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a0a2e, #2a1a4e);
+    border: 2px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+    margin: 0 auto 4px;
+    box-shadow: 0 0 25px rgba(212,175,55,0.4);
+    animation: aiGlow 2s ease-in-out infinite alternate;
+  }
+  @keyframes aiGlow {
+    from { box-shadow: 0 0 15px rgba(212,175,55,0.3); }
+    to { box-shadow: 0 0 40px rgba(212,175,55,0.7); }
+  }
+  .ai-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  /* Speech bubble */
+  .speech-bubble {
+    background: linear-gradient(135deg, rgba(17,17,17,0.97), rgba(25,18,5,0.97));
+    border: 1px solid var(--gold-dark);
+    border-radius: 4px;
+    padding: 20px 25px;
+    margin-top: 20px;
+    max-width: 650px;
+    width: 100%;
+    position: relative;
+    box-shadow: 0 0 30px rgba(212,175,55,0.1);
+    min-height: 80px;
+  }
+  .speech-bubble::before {
+    content: '';
+    position: absolute;
+    top: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 14px; height: 14px;
+    background: rgba(17,17,17,0.97);
+    border-left: 1px solid var(--gold-dark);
+    border-top: 1px solid var(--gold-dark);
+    transform: translateX(-50%) rotate(45deg);
+  }
+  .speech-text {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.1rem;
+    color: var(--text);
+    line-height: 1.7;
+    font-style: italic;
+    text-align: center;
+  }
+  .speech-text .highlight { color: var(--gold); font-style: normal; font-weight: 600; }
+
+  /* Role reveal */
+  .role-cards {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px 0;
+    max-width: 650px;
+    width: 100%;
+  }
+  .role-card {
+    background: linear-gradient(135deg, rgba(17,17,17,0.95), rgba(20,15,5,0.95));
+    border: 1px solid var(--gold-dark);
+    border-radius: 3px;
+    padding: 15px 20px;
+    text-align: center;
+    min-width: 130px;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+    transition: all 0.4s;
+  }
+  .role-card:hover {
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(212,175,55,0.3);
+    transform: translateY(-2px);
+  }
+  .role-card.revealed {
+    animation: cardReveal 0.5s ease forwards;
+  }
+  @keyframes cardReveal {
+    from { transform: rotateY(90deg); opacity: 0; }
+    to { transform: rotateY(0deg); opacity: 1; }
+  }
+  .role-card .role-icon { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+  .role-card .role-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .role-card .role-player {
+    font-family: 'Crimson Text', serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-top: 4px;
+    font-style: italic;
+  }
+  .role-card.mafia-card { border-color: rgba(139,0,0,0.5); }
+  .role-card.mafia-card:hover { border-color: var(--blood); box-shadow: 0 0 20px rgba(139,0,0,0.3); }
+  .role-card.mafia-card .role-name { color: #cc3333; }
+
+  /* Night kill selection */
+  .kill-select {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin: 15px 0;
+    max-width: 650px;
+    width: 100%;
+  }
+  .kill-btn {
+    background: rgba(139,0,0,0.1);
+    border: 1px solid rgba(139,0,0,0.4);
+    color: var(--text);
+    padding: 8px 18px;
+    border-radius: 2px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .kill-btn:hover {
+    background: rgba(139,0,0,0.4);
+    border-color: var(--blood);
+    box-shadow: 0 0 15px rgba(139,0,0,0.4);
+  }
+  .kill-btn.selected {
+    background: rgba(139,0,0,0.6);
+    border-color: var(--blood);
+  }
+
+  /* Action button */
+  .btn-night {
+    background: linear-gradient(135deg, #1a0000, #3a0000);
+    color: var(--gold);
+    border: 1px solid rgba(139,0,0,0.6);
+    padding: 14px 40px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.3s;
+    margin-top: 10px;
+  }
+  .btn-night:hover {
+    background: linear-gradient(135deg, #3a0000, #5a0000);
+    box-shadow: 0 0 25px rgba(139,0,0,0.5);
+  }
+
+  /* ===== PAGE 3: DAY SCENE ===== */
+  #page-day {
+    background: linear-gradient(160deg, #F5EFE0 0%, #E8D5A3 50%, #D4AF37 100%);
+    min-height: 100vh;
+  }
+  #page-day .stars-bg { display: none; }
+
+  .day-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .day-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    color: var(--day-text);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .day-subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: var(--day-accent);
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+  .day-divider {
+    width: 200px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--day-accent), transparent);
+    margin: 15px auto;
+  }
+
+  .day-scene {
+    max-width: 700px;
+    width: 100%;
+  }
+
+  /* Day speech bubble */
+  .day-bubble {
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(139,105,20,0.3);
+    border-radius: 8px;
+    padding: 20px 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  .day-bubble p {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.15rem;
+    color: var(--day-text);
+    line-height: 1.7;
+    font-style: italic;
+  }
+  .day-bubble strong { font-style: normal; color: var(--blood); font-weight: 600; }
+  .day-bubble .gold-text { color: var(--day-accent); font-style: normal; font-weight: 600; }
+
+  /* Day table (showing players) */
+  .day-table-wrap {
+    position: relative;
+    width: 100%;
+    padding-bottom: 85%;
+    max-width: 580px;
+    margin: 0 auto 20px;
+  }
+  .day-table { position: absolute; inset: 0; }
+  .day-table-surface {
+    position: absolute;
+    top: 15%; left: 15%; right: 15%; bottom: 15%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 40% 35%, #f0e0c0, #d4b880);
+    border: 3px solid var(--day-accent);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.2), inset 0 0 40px rgba(212,175,55,0.2);
+  }
+  .day-table-surface::after {
+    content: '⚜';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3rem;
+    color: rgba(139,105,20,0.2);
+  }
+
+  /* Day seat */
+  .day-seat {
+    position: absolute;
+    width: 75px;
+    text-align: center;
+    transform: translate(-50%, -50%);
+  }
+  .day-seat-avatar {
+    width: 55px; height: 55px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f5e0c0, #e0c090);
+    border: 2px solid var(--day-accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    margin: 0 auto 4px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .day-seat-avatar:hover:not(.eliminated) {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(212,175,55,0.5);
+  }
+  .day-seat.eliminated .day-seat-avatar {
+    background: rgba(139,0,0,0.15);
+    border-color: var(--blood);
+    filter: grayscale(0.8);
+    cursor: default;
+  }
+  .day-seat.eliminated .day-seat-avatar::after {
+    content: '✝';
+    position: absolute;
+    color: var(--blood);
+    font-size: 0.9rem;
+    bottom: -2px; right: -2px;
+  }
+  .day-seat-avatar { position: relative; }
+  .day-seat-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+    color: var(--day-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 75px;
+  }
+  .day-seat.eliminated .day-seat-name { text-decoration: line-through; color: rgba(44,24,16,0.4); }
+  .day-seat.vote-target .day-seat-avatar {
+    border-color: #cc6600;
+    box-shadow: 0 0 20px rgba(204,102,0,0.5);
+    animation: voteGlow 1s ease-in-out infinite alternate;
+  }
+  @keyframes voteGlow {
+    from { box-shadow: 0 0 10px rgba(204,102,0,0.3); }
+    to { box-shadow: 0 0 25px rgba(204,102,0,0.7); }
+  }
+
+  /* Vote panel */
+  .vote-panel {
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(139,105,20,0.3);
+    border-radius: 8px;
+    padding: 20px 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .vote-panel-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    color: var(--day-accent);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  .vote-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+  .vote-btn {
+    background: rgba(212,175,55,0.1);
+    border: 1px solid rgba(139,105,20,0.4);
+    color: var(--day-text);
+    padding: 8px 16px;
+    border-radius: 2px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .vote-btn:hover {
+    background: rgba(212,175,55,0.3);
+    border-color: var(--day-accent);
+  }
+  .vote-btn.selected {
+    background: rgba(212,175,55,0.4);
+    border-color: var(--day-accent);
+    box-shadow: 0 2px 10px rgba(212,175,55,0.3);
+  }
+  .btn-day {
+    background: linear-gradient(135deg, var(--day-accent), #6a4a10);
+    color: #F5EFE0;
+    border: none;
+    padding: 14px 40px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.3s;
+    display: block;
+    margin: 0 auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  }
+  .btn-day:hover {
+    box-shadow: 0 4px 25px rgba(0,0,0,0.35);
+    transform: translateY(-1px);
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 15px 0;
+    max-width: 650px;
+    width: 100%;
+  }
+  .stat-chip {
+    background: rgba(212,175,55,0.1);
+    border: 1px solid rgba(212,175,55,0.25);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--text);
+  }
+  .stat-chip.day-chip {
+    background: rgba(139,105,20,0.1);
+    border-color: rgba(139,105,20,0.3);
+    color: var(--day-text);
+  }
+
+  /* Game over */
+  .game-over-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.9);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 40px;
+    animation: fadeInOverlay 0.5s ease;
+  }
+  @keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .game-over-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(2rem, 6vw, 4rem);
+    color: var(--gold);
+    text-shadow: 0 0 40px rgba(212,175,55,0.6);
+    margin-bottom: 10px;
+  }
+  .game-over-sub {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    margin-bottom: 30px;
+  }
+  .game-over-msg {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.3rem;
+    color: var(--text);
+    max-width: 500px;
+    line-height: 1.7;
+    font-style: italic;
+    margin-bottom: 40px;
+  }
+  .btn-restart {
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    color: var(--black);
+    border: none;
+    padding: 16px 50px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.3em;
+    cursor: pointer;
+    border-radius: 2px;
+    text-transform: uppercase;
+  }
+
+  /* Loading/typing dots */
+  .typing-dots { display: inline-flex; gap: 4px; align-items: center; }
+  .typing-dots span {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: dot-bounce 1.2s ease-in-out infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot-bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Night transition flash */
+  .flash {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,1);
+    pointer-events: none;
+    animation: flashAnim 1.5s ease forwards;
+  }
+  @keyframes flashAnim {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .blood-flash {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(139,0,0,0.4);
+    pointer-events: none;
+    animation: bloodFlash 0.8s ease forwards;
+  }
+  @keyframes bloodFlash {
+    0% { opacity: 0; }
+    30% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .sun-flash {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(255,235,180,0.8);
+    pointer-events: none;
+    animation: sunFlash 1s ease forwards;
+  }
+  @keyframes sunFlash {
+    0% { opacity: 0; }
+    30% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* Toast notification */
+  .toast {
+    position: fixed;
+    bottom: 30px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(17,17,17,0.95);
+    border: 1px solid var(--gold-dark);
+    color: var(--text);
+    padding: 12px 24px;
+    border-radius: 3px;
+    font-family: 'Crimson Text', serif;
+    font-size: 1rem;
+    font-style: italic;
+    z-index: 300;
+    animation: toastIn 0.3s ease;
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* Responsive */
+  @media (max-width: 500px) {
+    .setup-card { padding: 30px 20px; }
+    .seat { width: 55px; }
+    .seat-avatar { width: 42px; height: 42px; font-size: 1rem; }
+    .day-seat { width: 60px; }
+    .day-seat-avatar { width: 46px; height: 46px; font-size: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars-bg"></div>
+
+<!-- ===== PAGE 1: SETUP ===== -->
+<div class="page active" id="page-setup">
+  <div class="main-title">MAFIA</div>
+  <div class="subtitle">The Night Calls</div>
+  <div class="divider"></div>
+
+  <div class="setup-card">
+    <div class="card-label">Enter the number of players</div>
+    <div class="player-counter">
+      <button class="counter-btn" onclick="changeCount(-1)">−</button>
+      <div class="counter-num" id="count-display">6</div>
+      <button class="counter-btn" onclick="changeCount(1)">+</button>
+    </div>
+    <div class="divider"></div>
+    <div class="player-names" id="name-inputs"></div>
+    <button class="btn-primary" onclick="startGame()">Begin the Night</button>
+    <div class="rule-note">Minimum 5 players · AI Moderator assigns roles</div>
+  </div>
+</div>
+
+<!-- ===== PAGE 2: NIGHT SCENE ===== -->
+<div class="page" id="page-night">
+  <div class="night-overlay"></div>
+
+  <div class="table-scene">
+    <div class="scene-header">
+      <div class="scene-title">The Gathering</div>
+      <div class="phase-label" id="night-phase-label">Night Falls</div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-bar" id="night-status" style="justify-content:center;">
+      <div class="stat-chip" id="chip-alive">Alive: —</div>
+      <div class="stat-chip" id="chip-mafia">Mafia: —</div>
+      <div class="stat-chip" id="chip-round">Round: 1</div>
+    </div>
+
+    <!-- AI Mod + speech -->
+    <div class="ai-mod">
+      <div class="ai-avatar">🎭</div>
+      <div class="ai-label">AI Moderator</div>
+    </div>
+
+    <!-- Round table -->
+    <div class="round-table-wrap" id="night-table-wrap">
+      <div class="round-table" id="night-table">
+        <div class="table-surface">
+          <div class="candle">
+            <span class="candle-flame">🕯</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Speech bubble -->
+    <div class="speech-bubble">
+      <div class="speech-text" id="night-speech">
+        <span class="typing-dots"><span></span><span></span><span></span></span>
+      </div>
+    </div>
+
+    <!-- Role cards area -->
+    <div class="role-cards" id="role-cards-area"></div>
+
+    <!-- Kill selection -->
+    <div class="kill-select" id="kill-select-area"></div>
+
+    <!-- Action button -->
+    <div style="text-align:center; margin-top:10px;">
+      <button class="btn-night" id="night-action-btn" style="display:none" onclick="nightAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE 3: DAY SCENE ===== -->
+<div class="page" id="page-day">
+  <div class="day-header">
+    <div class="day-title">Dawn Breaks</div>
+    <div class="day-subtitle" id="day-round-label">Day 1</div>
+    <div class="day-divider"></div>
+  </div>
+
+  <div class="day-scene">
+    <div class="day-bubble" id="day-announce"></div>
+
+    <!-- Day table -->
+    <div class="day-table-wrap" id="day-table-wrap">
+      <div class="day-table" id="day-table">
+        <div class="day-table-surface"></div>
+      </div>
+    </div>
+
+    <!-- Vote panel -->
+    <div class="vote-panel" id="vote-panel">
+      <div class="vote-panel-title">Cast Your Vote — Who is the Mafia?</div>
+      <div class="vote-list" id="vote-list"></div>
+      <button class="btn-day" id="vote-btn" onclick="castVote()">Cast Vote & Banish</button>
+    </div>
+  </div>
+</div>
+
+<div>
+    <button onclick="goBack()">⬅ Back to Home</button>
+</div>
+
+<script>
+// ===== GAME STATE =====
+let state = {
+  players: [],
+  roles: {}, // name -> role ('mafia' | 'detective' | 'villager' | 'doctor')
+  mafia: [],
+  detective: null,
+  doctor: null,
+  alive: [],
+  eliminated: [],
+  round: 1,
+  nightPhase: 'reveal', // 'reveal' | 'mafia_kill' | 'done'
+  selectedKillTarget: null,
+  selectedVoteTarget: null,
+  protectedPlayer: null,
+};
+
+const EMOJIS = ['🎩','👒','🧢','👑','🎭','🎪','🃏','🦅','🌹','🔮','⚔️','🦁','🐺','🕊','🌙','☀️'];
+
+// ===== PAGE 1 =====
+let playerCount = 6;
+function changeCount(d) {
+  playerCount = Math.max(5, Math.min(15, playerCount + d));
+  document.getElementById('count-display').textContent = playerCount;
+  renderNameInputs();
+}
+function renderNameInputs() {
+  const c = document.getElementById('name-inputs');
+  const existing = [...c.querySelectorAll('input')].map(i => i.value);
+  c.innerHTML = '';
+  for (let i = 0; i < playerCount; i++) {
+    const inp = document.createElement('input');
+    inp.className = 'name-input';
+    inp.placeholder = `Player ${i+1}`;
+    inp.value = existing[i] || '';
+    c.appendChild(inp);
+  }
+}
+renderNameInputs();
+
+function startGame() {
+  const inputs = document.querySelectorAll('.name-input');
+  let names = [...inputs].map((i,idx) => i.value.trim() || `Player ${idx+1}`);
+  // check unique
+  const seen = {};
+  names = names.map(n => {
+    if (seen[n]) { seen[n]++; return `${n} (${seen[n]})`; }
+    seen[n] = 1; return n;
+  });
+  state.players = names;
+  state.alive = [...names];
+  state.eliminated = [];
+  state.round = 1;
+  assignRoles();
+  showPage('page-night');
+  startNightSequence();
+}
+
+function assignRoles() {
+  const n = state.players.length;
+  const mafiaCount = n <= 6 ? 1 : n <= 9 ? 2 : 3;
+  let pool = [...state.players];
+  shuffle(pool);
+  state.roles = {};
+  state.mafia = [];
+  pool.forEach((p, i) => {
+    if (i < mafiaCount) { state.roles[p] = 'mafia'; state.mafia.push(p); }
+    else if (i === mafiaCount) { state.roles[p] = 'detective'; state.detective = p; }
+    else if (i === mafiaCount + 1) { state.roles[p] = 'doctor'; state.doctor = p; }
+    else { state.roles[p] = 'villager'; }
+  });
+}
+
+// ===== NIGHT SEQUENCE =====
+let nightStep = 0;
+
+function startNightSequence() {
+  nightStep = 0;
+  state.nightPhase = 'reveal';
+  state.selectedKillTarget = null;
+  state.protectedPlayer = null;
+  updateStatusChips();
+  buildNightTable();
+  document.getElementById('role-cards-area').innerHTML = '';
+  document.getElementById('kill-select-area').innerHTML = '';
+  document.getElementById('night-action-btn').style.display = 'none';
+  document.getElementById('night-phase-label').textContent = 'Night Falls';
+  typeText('night-speech', 'The city sleeps. Shadows gather around the table. I am your <span class="highlight">AI Moderator</span>. Let us begin...', 40, () => {
+    setTimeout(() => revealRoles(), 1000);
+  });
+}
+
+function revealRoles() {
+  document.getElementById('night-phase-label').textContent = 'Role Revelation';
+  typeText('night-speech', 'Everyone, close your eyes. I shall now whisper your <span class="highlight">secret roles</span>. Click each card to learn your fate.', 30, () => {
+    buildRoleCards();
+  });
+}
+
+function buildRoleCards() {
+  const area = document.getElementById('role-cards-area');
+  area.innerHTML = '';
+  state.players.forEach((p, i) => {
+    const role = state.roles[p];
+    const card = document.createElement('div');
+    card.className = `role-card${role === 'mafia' ? ' mafia-card' : ''}`;
+    card.innerHTML = `
+      <div style="font-size:2rem;margin-bottom:4px;">🂠</div>
+      <div class="role-name" style="color:var(--gold-dark)">Click to reveal</div>
+      <div class="role-player">${p}</div>
+    `;
+    card.dataset.player = p;
+    card.dataset.revealed = 'false';
+    card.onclick = function() {
+      if (this.dataset.revealed === 'true') return;
+      this.dataset.revealed = 'true';
+      const icons = { mafia:'🐺', detective:'🔍', doctor:'💉', villager:'🧑' };
+      const colors = { mafia:'#cc3333', detective:'#6699ff', doctor:'#44cc88', villager:'var(--gold)' };
+      const descs = { mafia:'Mafia', detective:'Detective', doctor:'Doctor', villager:'Villager' };
+      this.innerHTML = `
+        <div class="role-icon">${icons[role]}</div>
+        <div class="role-name" style="color:${colors[role]}">${descs[role]}</div>
+        <div class="role-player">${p}</div>
+      `;
+      this.classList.add('revealed');
+      checkAllRevealed();
+    };
+    setTimeout(() => area.appendChild(card), i * 120);
+  });
+  setTimeout(() => {
+    document.getElementById('night-action-btn').style.display = 'inline-block';
+    document.getElementById('night-action-btn').textContent = 'All roles seen → Continue';
+    document.getElementById('night-action-btn').onclick = mafiaKillPhase;
+  }, state.players.length * 120 + 200);
+}
+
+function checkAllRevealed() {
+  const all = document.querySelectorAll('.role-card');
+  const allDone = [...all].every(c => c.dataset.revealed === 'true');
+}
+
+function mafiaKillPhase() {
+  state.nightPhase = 'mafia_kill';
+  document.getElementById('role-cards-area').innerHTML = '';
+  document.getElementById('kill-select-area').innerHTML = '';
+  document.getElementById('night-action-btn').style.display = 'none';
+  document.getElementById('night-phase-label').textContent = 'Mafia Awakens';
+
+  typeText('night-speech', `<span class="highlight">Mafia</span>, open your eyes. Choose your victim for tonight. The innocent sleep, unaware...`, 30, () => {
+    buildKillSelect();
+  });
+}
+
+function goBack() {
+    // Change if your hub file has a different name
+    window.location.href = "index12.html";
+  }
+
+function buildKillSelect() {
+  const area = document.getElementById('kill-select-area');
+  area.innerHTML = '';
+  const targets = state.alive.filter(p => state.roles[p] !== 'mafia');
+  targets.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'kill-btn';
+    btn.textContent = p;
+    btn.onclick = function() {
+      document.querySelectorAll('.kill-btn').forEach(b => b.classList.remove('selected'));
+      this.classList.add('selected');
+      state.selectedKillTarget = p;
+      highlightSeat('night', p, 'mafia-target');
+    };
+    area.appendChild(btn);
+  });
+  document.getElementById('night-action-btn').style.display = 'inline-block';
+  document.getElementById('night-action-btn').textContent = 'Confirm Kill';
+  document.getElementById('night-action-btn').onclick = confirmNightKill;
+}
+
+function confirmNightKill() {
+  if (!state.selectedKillTarget) { showToast('Choose a target first'); return; }
+  // Doctor save? (simple: doctor randomly saves self or random player sometimes)
+  // We let mafia confirm, then transition
+  state.nightPhase = 'done';
+  document.getElementById('kill-select-area').innerHTML = '';
+  document.getElementById('night-action-btn').style.display = 'none';
+
+  const victim = state.selectedKillTarget;
+  typeText('night-speech', `The deed is done. <span class="highlight">Mafia</span>, close your eyes. Dawn will reveal all...`, 30, () => {
+    setTimeout(() => transitionToDay(victim), 1500);
+  });
+}
+
+function transitionToDay(victim) {
+  // Add blood flash
+  const bf = document.createElement('div');
+  bf.className = 'blood-flash';
+  document.body.appendChild(bf);
+  setTimeout(() => bf.remove(), 800);
+
+  setTimeout(() => {
+    // Check if doctor saves
+    const saved = (state.doctor && state.alive.includes(state.doctor) && Math.random() < 0.25 && victim !== state.doctor);
+    if (!saved) {
+      state.alive = state.alive.filter(p => p !== victim);
+      state.eliminated.push(victim);
+    }
+    state.protectedPlayer = saved ? victim : null;
+
+    // Sun flash
+    const sf = document.createElement('div');
+    sf.className = 'sun-flash';
+    document.body.appendChild(sf);
+    setTimeout(() => sf.remove(), 1000);
+
+    showPage('page-day');
+    buildDayScene(victim, saved);
+  }, 800);
+}
+
+// ===== DAY SCENE =====
+function buildDayScene(victim, saved) {
+  document.getElementById('day-round-label').textContent = `Day ${state.round}`;
+  state.selectedVoteTarget = null;
+
+  // Announcement
+  let msg = '';
+  if (saved) {
+    msg = `<p>Dawn reveals a city shaken but alive. Last night, the <span style="color:var(--blood);font-style:normal;font-weight:600;">Mafia</span> struck — but the <span class="gold-text">Doctor</span> was watching. <strong>${victim}</strong> survived, their life spared by an unseen hand.</p>`;
+  } else {
+    msg = `<p>The sun rises over an uneasy city. During the night, the <span style="color:var(--blood);font-style:normal;font-weight:600;">Mafia</span> claimed a life. <strong>${victim}</strong> has been found... eliminated. The town must now deliberate.</p>`;
+  }
+  msg += `<p style="margin-top:10px;font-size:0.95rem;color:var(--day-accent);font-style:normal;">Discuss. Debate. Then vote to banish who you believe is Mafia.</p>`;
+  document.getElementById('day-announce').innerHTML = msg;
+
+  buildDayTable();
+  buildVoteList();
+  checkWinCondition('day');
+}
+
+function buildDayTable() {
+  const wrap = document.getElementById('day-table');
+  // Remove old seats
+  document.querySelectorAll('.day-seat').forEach(s => s.remove());
+
+  const n = state.players.length;
+  const size = Math.min(wrap.offsetWidth || 580, 580);
+  const cx = 50, cy = 50;
+  const r = 38;
+
+  state.players.forEach((p, i) => {
+    const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+    const px = cx + r * Math.cos(angle);
+    const py = cy + r * Math.sin(angle);
+    const seat = document.createElement('div');
+    seat.className = `day-seat${state.eliminated.includes(p) ? ' eliminated' : ''}`;
+    seat.style.left = `${px}%`;
+    seat.style.top = `${py}%`;
+    seat.dataset.player = p;
+    const emoji = EMOJIS[i % EMOJIS.length];
+    seat.innerHTML = `
+      <div class="day-seat-avatar" onclick="selectVoteTarget('${p.replace(/'/g,"\\'")}', this)">${emoji}</div>
+      <div class="day-seat-name">${p}</div>
+    `;
+    wrap.appendChild(seat);
+  });
+}
+
+function selectVoteTarget(player, el) {
+  if (state.eliminated.includes(player)) return;
+  state.selectedVoteTarget = player;
+  document.querySelectorAll('.day-seat').forEach(s => s.classList.remove('vote-target'));
+  el.closest('.day-seat').classList.add('vote-target');
+  document.querySelectorAll('.vote-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.player === player);
+  });
+}
+
+function buildVoteList() {
+  const list = document.getElementById('vote-list');
+  list.innerHTML = '';
+  state.alive.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'vote-btn';
+    btn.textContent = p;
+    btn.dataset.player = p;
+    btn.onclick = function() {
+      state.selectedVoteTarget = p;
+      document.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('selected'));
+      this.classList.add('selected');
+      // highlight day table seat
+      document.querySelectorAll('.day-seat').forEach(s => {
+        s.classList.toggle('vote-target', s.dataset.player === p);
+      });
+    };
+    list.appendChild(btn);
+  });
+}
+
+function castVote() {
+  if (!state.selectedVoteTarget) { showToast('Select someone to banish'); return; }
+  const banished = state.selectedVoteTarget;
+  state.alive = state.alive.filter(p => p !== banished);
+  state.eliminated.push(banished);
+
+  if (checkWinCondition('vote', banished)) return;
+
+  // Move to next night
+  state.round++;
+  state.selectedKillTarget = null;
+  state.selectedVoteTarget = null;
+
+  const sf = document.createElement('div');
+  sf.className = 'flash';
+  document.body.appendChild(sf);
+  setTimeout(() => sf.remove(), 1500);
+
+  setTimeout(() => {
+    showPage('page-night');
+    document.getElementById('night-phase-label').textContent = `Night ${state.round}`;
+    document.getElementById('chip-round').textContent = `Round: ${state.round}`;
+    updateStatusChips();
+    buildNightTable();
+    document.getElementById('role-cards-area').innerHTML = '';
+    document.getElementById('kill-select-area').innerHTML = '';
+    document.getElementById('night-action-btn').style.display = 'none';
+    typeText('night-speech', `The town has banished <span class="highlight">${banished}</span> (${roleLabel(state.roles[banished])}). Darkness falls again. Mafia, choose your next victim...`, 30, () => {
+      setTimeout(mafiaKillPhase, 1200);
+    });
+  }, 1500);
+}
+
+function checkWinCondition(phase, banished) {
+  const mafiaAlive = state.alive.filter(p => state.roles[p] === 'mafia');
+  const villagersAlive = state.alive.filter(p => state.roles[p] !== 'mafia');
+
+  if (mafiaAlive.length === 0) {
+    setTimeout(() => showGameOver('village', banished), 600);
+    return true;
+  }
+  if (mafiaAlive.length >= villagersAlive.length) {
+    setTimeout(() => showGameOver('mafia', null), 600);
+    return true;
+  }
+  return false;
+}
+
+function showGameOver(winner, lastBanished) {
+  const div = document.createElement('div');
+  div.className = 'game-over-overlay';
+  let title, sub, msg;
+  if (winner === 'village') {
+    title = 'Justice Served';
+    sub = 'The Village Wins';
+    msg = lastBanished
+      ? `With the banishment of <em>${lastBanished}</em>, the last shadow of Mafia has been extinguished. The city breathes free once more.`
+      : 'The Mafia has been vanquished. Peace returns to the city.';
+  } else {
+    title = 'Darkness Prevails';
+    sub = 'The Mafia Wins';
+    msg = `The Mafia now controls the city. The remaining villagers can only bow to the shadows. The night belongs to the wicked.`;
+  }
+  div.innerHTML = `
+    <div class="game-over-title">${title}</div>
+    <div class="game-over-sub">${sub}</div>
+    <div class="divider" style="width:160px;margin:20px auto;"></div>
+    <div class="game-over-msg">${msg}</div>
+    <div style="margin-bottom:20px;font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.2em;color:var(--gold-dark);">
+      THE MAFIA: ${state.mafia.join(', ')}
+    </div>
+    <button class="btn-restart" onclick="restartGame()">Play Again</button>
+  `;
+  document.body.appendChild(div);
+}
+
+function restartGame() {
+  document.querySelectorAll('.game-over-overlay').forEach(e => e.remove());
+  playerCount = 6;
+  document.getElementById('count-display').textContent = 6;
+  renderNameInputs();
+  showPage('page-setup');
+}
+
+// ===== HELPERS =====
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function typeText(elId, html, speed, cb) {
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  // Strip HTML for typing, then show full HTML at end
+  const plain = html.replace(/<[^>]+>/g, '');
+  let i = 0;
+  const timer = setInterval(() => {
+    if (i >= plain.length) {
+      clearInterval(timer);
+      el.innerHTML = html;
+      if (cb) cb();
+      return;
+    }
+    el.textContent = plain.substring(0, ++i) + '▌';
+  }, speed);
+}
+
+function buildNightTable() {
+  const wrap = document.getElementById('night-table');
+  document.querySelectorAll('.seat').forEach(s => s.remove());
+  const n = state.players.length;
+  const cx = 50, cy = 50, r = 40;
+
+  state.players.forEach((p, i) => {
+    const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+    const px = cx + r * Math.cos(angle);
+    const py = cy + r * Math.sin(angle);
+    const seat = document.createElement('div');
+    seat.className = `seat${state.eliminated.includes(p) ? ' eliminated' : ''}`;
+    seat.style.left = `${px}%`;
+    seat.style.top = `${py}%`;
+    seat.dataset.player = p;
+    const emoji = EMOJIS[i % EMOJIS.length];
+    seat.innerHTML = `
+      <div class="seat-avatar">${emoji}</div>
+      <div class="seat-name">${p}</div>
+    `;
+    wrap.appendChild(seat);
+  });
+}
+
+function highlightSeat(scene, player, cls) {
+  document.querySelectorAll('.seat').forEach(s => s.classList.remove(cls));
+  const seats = document.querySelectorAll('.seat');
+  seats.forEach(s => { if (s.dataset.player === player) s.classList.add(cls); });
+}
+
+function updateStatusChips() {
+  document.getElementById('chip-alive').textContent = `Alive: ${state.alive.length}`;
+  document.getElementById('chip-mafia').textContent = `Mafia: ${state.alive.filter(p => state.roles[p] === 'mafia').length}`;
+  document.getElementById('chip-round').textContent = `Round: ${state.round}`;
+}
+
+function roleLabel(r) {
+  const m = { mafia:'Mafia', detective:'Detective', doctor:'Doctor', villager:'Villager' };
+  return m[r] || r;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+function nightAction() {} // placeholder, overridden inline
+</script>
+</body>
+</html>
